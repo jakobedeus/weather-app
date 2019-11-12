@@ -2,7 +2,19 @@ body {
   background: rgb(240, 240, 240);
 }
 
+h1 {
+  margin: 40px 0 10px 0;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
 .wrapper {
-  width: 1140px;
-  margin: 2em auto;
+  width: 600px;
+  margin: 0 auto;
+}
+
+
+.dnd-list {
+margin-top: 40px;
+
 }

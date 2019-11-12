@@ -1,20 +1,28 @@
 import React from 'react';
+import PropTypes from 'react';
 import './_List.scss';
 import ListItem from '../ListItem/ListItem';
+import Container from '../ListItem/Example';
 
 const axios = require('axios');
 
 interface IWeatherState {
-  city: string;
-  wind: number;
+  weather: IWeatherDetails[];
+  lang: string;
+}
+
+interface IWeatherDetails {
+  name: string;
+  id: number;
   temp: number;
   humidity: number;
-  main: string;
   latitude: number;
   longitude: number;
 }
+
 const ApiKey = "3b6cac1b1e318668b680ae452215be56";
 const ApiUrl = "https://api.openweathermap.org/data/2.5/weather?";
+const metric = "units=metric";
 
 class List extends React.Component<{}, IWeatherState> {
 
@@ -22,69 +30,117 @@ class List extends React.Component<{}, IWeatherState> {
     super(props)
 
     this.state = {
-      city: "Stockholm",
-      wind: .2,
-      temp: 20,
-      humidity: .4,
-      main: "Cloudy",
-      latitude: 35,
-      longitude: 139,
+      weather: [],
+      lang: 'se'
     }
+    this.getLocalWeater = this.getLocalWeater.bind(this);
+    this.getDefaultWeather = this.getDefaultWeather.bind(this);
+    this.removeWeather = this.removeWeather.bind(this);
+    this.changeLang = this.changeLang.bind(this);
+    this.setDataToState = this.setDataToState.bind(this);
   }
+  
 
-  getWeather() {
-    axios.get(`${ApiUrl}q=${this.state.city}&appid=${ApiKey}`)
-    .then((response: any) => {
-      const data = response.data;
-      this.setState({city: data.name, wind: data.wind.speed, temp: data.main.temp, humidity: data.main.humidity })
+  setDataToState = (response: any) => {
+    const weather = this.state.weather;
+    this.setState({weather: [...weather,{
+      name: response.data.name, 
+      id: response.data.id,
+      temp: response.data.main.temp.toFixed(),
+      humidity: response.data.main.humidity,
+      longitude: response.data.coord.lon,
+      latitude: response.data.coord.lat
+    }]}, () => {
+      console.log(this.state.weather)
+      localStorage.setItem("weather", JSON.stringify(this.state.weather))
     })
   }
 
-  myPosition() {
-    axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=3${ApiKey}`)
-    .then((response: any) => {
-      const data = response.data;
-      this.setState({city: data.name, wind: data.wind.speed, temp: data.main.temp, humidity: data.main.humidity })
+  getDefaultWeather() {
+    axios.get(`${ApiUrl}q=Stockholm&${metric}&appid=${ApiKey}`)
+    .then((response: any[]) => {
+      this.setDataToState(response)
     })
   }
 
-  getLocation() {
-    // const geo = navigator.geolocation;
-    // navigator.geolocation.getCurrentPosition(this.showPosition);
-    // console.log(geo)
-    // this.showPosition(geo)
-      // if (geo) {
-      //   geo.getCurrentPosition(this.showPosition);
-      // } else { 
-      //   console.log("not supported")
-      // }
-    
+  getWeatherByCoords(lat: number, long: number) {
+    axios.get(`${ApiUrl}lat=${lat}&lon=${long}&${metric}&appid=${ApiKey}`)
+    .then((response: any[]) => {
+      this.setDataToState(response)
+    })
+  }
+
+  getWeatherByName(city: string) {
+    const weather = this.state.weather;
+
+    for (let index = 0; index < weather.length; index++) {
+      if(city === weather[index].name) {
+        return null;
+      }
+    }
+
+    axios.get(`${ApiUrl}q=${city}&${metric}&appid=${ApiKey}`)
+      .then((response: any[]) => {
+        this.setDataToState(response)
+      }) 
     
   }
 
-  showPosition(position: any) {
-    console.log("Latitude:", position.coords.latitude, "Longitude", position.coords.longitude)
-    // x.innerHTML = "Latitude: " + position.coords.latitude + 
-    // "<br>Longitude: " + position.coords.longitude;
+  getLocalWeater() {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat: number = position.coords.latitude;
+        const long: number = position.coords.longitude;
+        this.getWeatherByCoords(lat, long);
+      }, error => {
+        console.log("ingen geo")
+      }) 
+  }
+
+  removeWeather(id: number) {
+    let weatherStorage = JSON.parse(localStorage.getItem('weather') || '{}');
+    const weather = this.state.weather;
+    weather.splice(id, 1);
+    weatherStorage.splice(id, 1)
+    
+    this.setState({ weather: weather }, () => {
+      localStorage.setItem("weather", JSON.stringify(this.state.weather))
+    });
+  }
+
+  changeLang(event: any) {
+    event.preventDefault();
+    this.setState({ lang: event.target.value }, () => {
+      localStorage.setItem("lang", JSON.stringify(this.state.lang))
+    })
   }
 
   componentDidMount() {
-    this.getWeather();
+    let weather = JSON.parse(localStorage.getItem('weather') || '');
+
+    if(weather.length > 1) {
+      this.setState({ weather: weather });
+    } else {
+      this.getDefaultWeather();
+    }
   };
 
   render() {
+    const weather = this.state.weather
+    weather.sort((a, b) => a.name.localeCompare(b.name))
+
     return(
       <div className="container">
-        <button onClick={this.myPosition}>Weather where I am</button>
-        <button onClick={this.getLocation}>Get my position</button>
-        <div className="list">
-          <ListItem           
-            city={this.state.city}
-            wind={this.state.wind}
-            temp={this.state.temp}
-            humidity={this.state.humidity}
-            main={this.state.main}/>
+        <div className="filter">
+          <button onClick={this.getLocalWeater} className="local">Get local weather</button>
+          <button onClick={() => this.getWeatherByName('London')}>London</button>
+          <button  onClick={() => this.getWeatherByName('Barcelona')}>Barcelona</button>
         </div>
+
+        <ListItem 
+          weather={this.state.weather}
+          removeWeatherProps={this.removeWeather}
+        /> 
       </div>
     )
   }

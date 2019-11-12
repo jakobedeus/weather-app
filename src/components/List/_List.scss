@@ -1,3 +1,17 @@
-.list {
-    margin: 0 auto;
+.filter {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .local {
+        background: rgb(71, 71, 71);
+        color: white;
+    }
+    
+
+    button {
+        margin: 0 10px 10px 0;
+        border: 1px solid rgb(161, 161, 161);
+        cursor: pointer;
+    }
 }

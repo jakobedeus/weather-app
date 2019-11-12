@@ -1,3 +1,74 @@
-.list-item {
-    background: white;
+.list {
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+
+    &-item {
+        width: 100%;
+        background: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        border: 1px solid rgb(206, 206, 206);
+        margin: 4px 10px 4px 0;
+        display: flex;
+        justify-content: space-between;
+
+        button {
+            padding: 0;
+        }
+    }
+}
+
+h2 {
+    margin: 40px 0 10px 0;
+}
+
+ul {
+    list-style: none;
+}
+
+
+
+button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    border: 1px solid rgb(161, 161, 161);
+}
+
+.save {
+    background: green;
+    color: white;
+}
+
+.remove {
+    border: none;
+
+    svg {
+        
+        height: 18px;
+        width: 18px;
+        path{
+            fill:rgb(196, 0, 0);
+        }
+    }
+}
+
+.city {
+    border-bottom: 1px solid gray;
+    padding: 1em 0;
+}
+
+.list-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    div {   
+        min-width: 150px;
+        flex: 1;
+        margin: 5px;
+    }
 }
