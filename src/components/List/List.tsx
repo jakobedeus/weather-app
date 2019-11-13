@@ -8,8 +8,8 @@ const axios = require('axios');
 
 interface IWeather {
   weather: IWeatherDetails[];
-  lang: string;
   loading: boolean;
+  sorting: string;
 
 }
 
@@ -21,6 +21,7 @@ interface IWeatherDetails {
   latitude: number;
   longitude: number;
   local: boolean;
+  icon: string;
 }
 
 const ApiKey = "3b6cac1b1e318668b680ae452215be56";
@@ -47,8 +48,8 @@ class List extends React.Component<{}, IWeather> {
     
     this.state = {
       weather: weather,
-      lang: 'se',
-      loading: false
+      loading: false,
+      sorting: 'Alpabetical'
     }
 
     if(weather.length > 1) {
@@ -64,9 +65,12 @@ class List extends React.Component<{}, IWeather> {
     this.getLocalWeater = this.getLocalWeater.bind(this);
     this.getDefaultWeather = this.getDefaultWeather.bind(this);
     this.removeWeather = this.removeWeather.bind(this);
-    this.changeLang = this.changeLang.bind(this);
     this.setDataToState = this.setDataToState.bind(this);
     this.onDragEnd = this.onDragEnd.bind(this);
+
+    // this.state.weather.map(item => {
+    //   if(item.local)
+    // })
   }
 
   onDragEnd(result: any) {
@@ -91,6 +95,10 @@ class List extends React.Component<{}, IWeather> {
 
   setDataToState = (response: any, local: boolean) => {
     const weather = this.state.weather;
+    let icon: string = '';
+    response.data.weather.map((item: any, index: any)  => {
+      icon = item.icon
+    })
     this.setState({weather: [...weather,{
       name: response.data.name, 
       id: response.data.id,
@@ -98,7 +106,8 @@ class List extends React.Component<{}, IWeather> {
       humidity: response.data.main.humidity,
       longitude: response.data.coord.lon,
       latitude: response.data.coord.lat,
-      local: local
+      local: local,
+      icon: icon
     }]}, () => {
       localStorage.setItem("weather", JSON.stringify(this.state.weather))
     })
@@ -107,7 +116,15 @@ class List extends React.Component<{}, IWeather> {
   getDefaultWeather() {
     const local = false;
     axios.get(`${ApiUrl}q=Stockholm&${metric}&appid=${ApiKey}`)
-    .then((response: IWeatherDetails[]) => {
+    .then((response: any) => {
+      console.log();
+      
+      response.data.weather.map((item: any, index: any) => {
+        console.log(item.icon);
+        
+      })
+      // console.log(response.data.weather.map(item ));
+      
       this.setDataToState(response, local)
     })
   }
@@ -140,6 +157,8 @@ class List extends React.Component<{}, IWeather> {
     axios.get(`${ApiUrl}q=${city}&${metric}&appid=${ApiKey}`)
       .then((response: IWeatherDetails[]) => {
         this.setDataToState(response, local)
+        console.log(response);
+        
       }) 
   }
 
@@ -162,24 +181,29 @@ class List extends React.Component<{}, IWeather> {
     })
   }
 
-  changeLang(event: any) {
-    event.preventDefault();
-    this.setState({ lang: event.target.value }, () => {
-      localStorage.setItem("lang", JSON.stringify(this.state.lang))
-    })
-  }
 
-  sortList = () => {
-    const weather = this.state.weather;
-    this.setState({ 
-      weather:  
-      weather.sort((a, b) => (a.temp - b.temp)) }, () => {
-      console.log(this.state.weather);
-    });
-  }
+  // sortCold = () => {
+  //   const weather = this.state.weather;
+  //   this.setState({ 
+  //     weather:  
+  //     weather.sort((a, b) => (a.temp - b.temp)), sorting: 'Cold'  });
+  // }
+
+  // sortWarm = () => {
+  //   const weather = this.state.weather;
+  //   this.setState({ 
+  //     weather:  
+  //     weather.sort((a, b) => (b.temp - a.temp)), sorting: 'Hot'  });
+  // }
+
+  // sortAlphabetical = () => {
+  //   const weather = this.state.weather;
+  //   this.setState({ 
+  //     weather:  
+  //     weather.sort((a: any, b: any) => a.name.localeCompare(b.name)), sorting: 'Alphabetical' });
+  // }
 
   render() {
-
 
     return(
       <div className="weather">
@@ -187,8 +211,15 @@ class List extends React.Component<{}, IWeather> {
           <button onClick={this.getLocalWeater} className="weather__filter-local">Get local weather</button>
           <button onClick={() => this.getWeatherByName('London')}>London</button>
           <button onClick={() => this.getWeatherByName('Barcelona')}>Barcelona</button>
-          <button onClick={this.sortList}>Coldest</button>
+          
         </div>
+        {/* <div className="weather__sort">
+          
+          <button onClick={this.sortCold}>Cold</button>
+          <button onClick={this.sortWarm}>Hot</button>
+          <button onClick={this.sortAlphabetical}>Alphabetical</button>
+        </div> */}
+        {/* <p>Sorting list by <b>{this.state.sorting}</b></p> */}
         <DragDropContext onDragEnd={this.onDragEnd}>
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (

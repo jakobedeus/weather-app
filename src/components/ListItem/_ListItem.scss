@@ -4,20 +4,44 @@
     flex-wrap: wrap;
     width: 100%;
 
+    &-container {
+        margin-top: 20px;
+    }
+
     &-item {
         // width: 100%;
-        background: white;
+        background: transparent;
         padding: 10px 20px;
-        border-radius: 4px;
-        border: 1px solid rgb(206, 206, 206);
-        margin: 4px 0;
+        // border-radius: 4px;
+        border-bottom: 1px solid rgb(206, 206, 206);
+        // margin: 4px 0;
         display: flex;
         justify-content: space-between;
+
 
         button {
             padding: 0;
         }
+
+        &-info {
+            
+            display: flex;
+            flex-direction: row;
+
+            p {
+                margin: 0;
+                align-self: center;
+            }
+
+            img {
+                width: 60px;
+                height: 60px;
+            }
+
+        
+        }
     }
+    
 }
 
 h2 {
@@ -27,6 +51,7 @@ h2 {
 ul {
     list-style: none;
 }
+
 
 
 
