@@ -2,7 +2,6 @@ import React from 'react';
 import './_List.scss';
 import ListItem from '../ListItem/ListItem';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import LoadingSpinner from '../loadingSpinner';
 import { any } from 'prop-types';
 
 const axios = require('axios');
