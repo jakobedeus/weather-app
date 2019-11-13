@@ -1,5 +1,5 @@
 body {
-  background: rgb(240, 240, 240);
+  background: rgb(245, 245, 245);
 }
 
 h1 {
@@ -8,13 +8,8 @@ h1 {
   text-align: center;
 }
 
-.wrapper {
-  width: 600px;
-  margin: 0 auto;
-}
 
 
 .dnd-list {
-margin-top: 40px;
-
+  margin-top: 40px;
 }
