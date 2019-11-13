@@ -3,13 +3,14 @@ import './_List.scss';
 import ListItem from '../ListItem/ListItem';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { any } from 'prop-types';
-
+import { debounce as lodashDebounce } from 'lodash';
 const axios = require('axios');
 
 interface IWeather {
   weather: IWeatherDetails[];
   loading: boolean;
   sorting: string;
+  search: string;
 
 }
 
@@ -23,6 +24,8 @@ interface IWeatherDetails {
   local: boolean;
   icon: string;
 }
+
+var debounce = require('lodash.debounce');
 
 const ApiKey = "3b6cac1b1e318668b680ae452215be56";
 const ApiUrl = "https://api.openweathermap.org/data/2.5/weather?";
@@ -41,6 +44,9 @@ const getListStyle = (isDraggingOver: any) => ({
   background: isDraggingOver ? "transparent" : "transparent",
 });
 
+
+
+
 class List extends React.Component<{}, IWeather> {
   constructor(props: any) {
     super(props)
@@ -49,7 +55,8 @@ class List extends React.Component<{}, IWeather> {
     this.state = {
       weather: weather,
       loading: false,
-      sorting: 'Alpabetical'
+      sorting: 'Alpabetical',
+      search: ''
     }
 
     if(weather.length > 1) {
@@ -67,10 +74,13 @@ class List extends React.Component<{}, IWeather> {
     this.removeWeather = this.removeWeather.bind(this);
     this.setDataToState = this.setDataToState.bind(this);
     this.onDragEnd = this.onDragEnd.bind(this);
+    this.getSearchResults = this.getSearchResults.bind(this);
+    this.searchLocation = this.searchLocation.bind(this);
 
-    // this.state.weather.map(item => {
-    //   if(item.local)
-    // })
+    // this.searchLocation = lodashDebounce(
+    //   this.getLocalWeater,
+    //   2000,
+    // );
   }
 
   onDragEnd(result: any) {
@@ -91,6 +101,7 @@ class List extends React.Component<{}, IWeather> {
       localStorage.setItem("weather", JSON.stringify(this.state.weather))
     });
   }
+
   
 
   setDataToState = (response: any, local: boolean) => {
@@ -109,6 +120,8 @@ class List extends React.Component<{}, IWeather> {
       local: local,
       icon: icon
     }]}, () => {
+      console.log(this.state.search);
+      
       localStorage.setItem("weather", JSON.stringify(this.state.weather))
     })
   }
@@ -117,20 +130,13 @@ class List extends React.Component<{}, IWeather> {
     const local = false;
     axios.get(`${ApiUrl}q=Stockholm&${metric}&appid=${ApiKey}`)
     .then((response: any) => {
-      console.log();
-      
-      response.data.weather.map((item: any, index: any) => {
-        console.log(item.icon);
-        
-      })
-      // console.log(response.data.weather.map(item ));
-      
       this.setDataToState(response, local)
     })
   }
 
   getWeatherByCoords(lat: number, long: number, local: boolean) {
-
+    console.log(lat, long);
+    
     const weather = this.state.weather;
     for (let index = 0; index < weather.length; index++) {       
       if(JSON.parse(lat.toFixed(2)) === weather[index].latitude || JSON.parse(long.toFixed(2)) === weather[index].longitude) {
@@ -157,12 +163,11 @@ class List extends React.Component<{}, IWeather> {
     axios.get(`${ApiUrl}q=${city}&${metric}&appid=${ApiKey}`)
       .then((response: IWeatherDetails[]) => {
         this.setDataToState(response, local)
-        console.log(response);
-        
       }) 
   }
 
   getLocalWeater() {
+    
     navigator.geolocation.getCurrentPosition(
       position => {
         const lat: number = position.coords.latitude;
@@ -193,7 +198,7 @@ class List extends React.Component<{}, IWeather> {
   //   const weather = this.state.weather;
   //   this.setState({ 
   //     weather:  
-  //     weather.sort((a, b) => (b.temp - a.temp)), sorting: 'Hot'  });
+  //     weather.sort((a, b) => (b.temp - a.temp)), sorting:ls 'Hot'  });
   // }
 
   // sortAlphabetical = () => {
@@ -203,10 +208,39 @@ class List extends React.Component<{}, IWeather> {
   //     weather.sort((a: any, b: any) => a.name.localeCompare(b.name)), sorting: 'Alphabetical' });
   // }
 
-  render() {
+  searchLocation = (event: any) => {
+    let { value } = event.target;
+    console.log(value);
+    // console.log(value);
+    this.setState({
+        search: value
+    })
+    setTimeout(() => {
+      this.getSearchResults();
+    })
+  }
 
+
+  getSearchResults() {
+    const weather = this.state.weather;
+    const search = this.state.search;
+    const local = false;
+    for (let index = 0; index < weather.length; index++) {
+      if(search === weather[index].name) {
+        return null;
+      }
+    }
+    axios.get(`${ApiUrl}q=${search}&${metric}&appid=${ApiKey}`)
+      .then((response: IWeatherDetails[]) => {
+        this.setDataToState(response, local)
+    }) 
+  }
+
+  render() {
+    // onChange={_.debounce(this.searchLocation.bind(this), 1000 )}
     return(
       <div className="weather">
+        <input type="text" name="" id="" placeholder="Search for a city" onChange={this.searchLocation} value={this.state.search}/>
         <div className="weather__filter">
           <button onClick={this.getLocalWeater} className="weather__filter-local">Get local weather</button>
           <button onClick={() => this.getWeatherByName('London')}>London</button>
