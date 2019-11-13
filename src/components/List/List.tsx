@@ -2,8 +2,6 @@ import React from 'react';
 import './_List.scss';
 import ListItem from '../ListItem/ListItem';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import { any } from 'prop-types';
-import { debounce as lodashDebounce } from 'lodash';
 const axios = require('axios');
 
 interface IWeather {
@@ -25,7 +23,6 @@ interface IWeatherDetails {
   icon: string;
 }
 
-var debounce = require('lodash.debounce');
 
 const ApiKey = "3b6cac1b1e318668b680ae452215be56";
 const ApiUrl = "https://api.openweathermap.org/data/2.5/weather?";
@@ -56,7 +53,7 @@ class List extends React.Component<{}, IWeather> {
       weather: weather,
       loading: false,
       sorting: 'Alpabetical',
-      search: ''
+      search: ""
     }
 
     if(weather.length > 1) {
@@ -76,6 +73,7 @@ class List extends React.Component<{}, IWeather> {
     this.onDragEnd = this.onDragEnd.bind(this);
     this.getSearchResults = this.getSearchResults.bind(this);
     this.searchLocation = this.searchLocation.bind(this);
+    this.clearList = this.clearList.bind(this)
 
     // this.searchLocation = lodashDebounce(
     //   this.getLocalWeater,
@@ -108,7 +106,7 @@ class List extends React.Component<{}, IWeather> {
     const weather = this.state.weather;
     let icon: string = '';
     response.data.weather.map((item: any, index: any)  => {
-      icon = item.icon
+      return icon = item.icon
     })
     this.setState({weather: [...weather,{
       name: response.data.name, 
@@ -120,18 +118,19 @@ class List extends React.Component<{}, IWeather> {
       local: local,
       icon: icon
     }]}, () => {
-      console.log(this.state.search);
-      
       localStorage.setItem("weather", JSON.stringify(this.state.weather))
     })
   }
 
   getDefaultWeather() {
     const local = false;
-    axios.get(`${ApiUrl}q=Stockholm&${metric}&appid=${ApiKey}`)
-    .then((response: any) => {
-      this.setDataToState(response, local)
-    })
+
+    if(localStorage.getItem("weather") === null || this.state.weather.length === 0) {
+      axios.get(`${ApiUrl}q=Stockholm&${metric}&appid=${ApiKey}`)
+      .then((response: any) => {
+        this.setDataToState(response, local)
+      })
+    }
   }
 
   getWeatherByCoords(lat: number, long: number, local: boolean) {
@@ -214,9 +213,8 @@ class List extends React.Component<{}, IWeather> {
     // console.log(value);
     this.setState({
         search: value
-    })
-    setTimeout(() => {
-      this.getSearchResults();
+    }, () => {
+      this.getWeatherByName(value)
     })
   }
 
@@ -224,28 +222,36 @@ class List extends React.Component<{}, IWeather> {
   getSearchResults() {
     const weather = this.state.weather;
     const search = this.state.search;
-    const local = false;
     for (let index = 0; index < weather.length; index++) {
       if(search === weather[index].name) {
         return null;
       }
     }
-    axios.get(`${ApiUrl}q=${search}&${metric}&appid=${ApiKey}`)
-      .then((response: IWeatherDetails[]) => {
-        this.setDataToState(response, local)
-    }) 
+    this.getWeatherByName(search);
+  }
+
+  clearList() {
+    this.setState({ weather: [] }, () => {
+      localStorage.clear();
+    })
   }
 
   render() {
     // onChange={_.debounce(this.searchLocation.bind(this), 1000 )}
     return(
       <div className="weather">
-        <input type="text" name="" id="" placeholder="Search for a city" onChange={this.searchLocation} value={this.state.search}/>
+        
         <div className="weather__filter">
           <button onClick={this.getLocalWeater} className="weather__filter-local">Get local weather</button>
-          <button onClick={() => this.getWeatherByName('London')}>London</button>
-          <button onClick={() => this.getWeatherByName('Barcelona')}>Barcelona</button>
+          <button onClick={this.clearList} className="weather__filter-delete">
+          Empty list
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+              <path d="M3 6v18h18v-18h-18zm5 14c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm5 0c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm5 0c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm4-18v2h-20v-2h5.711c.9 0 1.631-1.099 1.631-2h5.315c0 .901.73 2 1.631 2h5.712z"/>
+            </svg>
+          </button>
           
+
+          <input type="text" className="weather__search" placeholder="Search for a city" onChange={this.searchLocation} value={this.state.search}/>
         </div>
         {/* <div className="weather__sort">
           

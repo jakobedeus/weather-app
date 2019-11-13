@@ -33,6 +33,7 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
 function ListItem (props: IListItemProps) {
   return (
     <div className="list-container">
+    <p>{props.weather.length} results found.</p>
     {props.weather.map((item, index) => (
         <Draggable
           key={item.id} draggableId={JSON.stringify(item.id)} index={index}>
@@ -51,7 +52,7 @@ function ListItem (props: IListItemProps) {
               <div className="list-item-info">
                   <p><b>{item.name} </b></p> 
                   
-                  <img src={('http://openweathermap.org/img/wn/' + `${item.icon}` + '@2x.png')} />
+                  <img src={('http://openweathermap.org/img/wn/' + `${item.icon}` + '@2x.png')} alt="Icon of weather"/>
                   <p className="temp">
                     {item.temp} °C
                   </p> 
