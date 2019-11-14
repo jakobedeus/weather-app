@@ -274,6 +274,7 @@ class List extends React.Component<{}, IWeather> {
           <button onClick={this.sortAlphabetical}>Alphabetical</button>
         </div> */}
         {/* <p>Sorting list by <b>{this.state.sorting}</b></p> */}
+        <h2>My list</h2>
         <DragDropContext onDragEnd={this.onDragEnd}>
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (
