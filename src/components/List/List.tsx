@@ -2,21 +2,19 @@ import React from 'react';
 import './_List.scss';
 import ListItem from '../ListItem/ListItem';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import { debounce  as lodashDebounce } from 'lodash';
 import axios, { AxiosResponse } from 'axios';
-import debounce from 'lodash.debounce';
-import {DebounceInput} from 'react-debounce-input';
+import Search from '../Search/Search';
 
 
 interface IWeather {
   weather: IWeatherDetails[];
   loading: boolean;
   sorting: string;
-  search: string;
+  results: SearchDetails[];
 
 }
 
-interface IWeatherDetails {
+export interface IWeatherDetails {
   name: string;
   id: number;
   temp: number;
@@ -25,6 +23,12 @@ interface IWeatherDetails {
   longitude: number;
   local: boolean;
   icon: string;
+}
+
+export interface SearchDetails {
+  name: string;
+  temp: number;
+  id: number;
 }
 
 
@@ -47,10 +51,6 @@ const getListStyle = (isDraggingOver: any) => ({
 });
 
 
-
-
-
-
 class List extends React.Component<{}, IWeather> {
   constructor(props: any) {
     super(props)
@@ -60,7 +60,7 @@ class List extends React.Component<{}, IWeather> {
       weather: weather,
       loading: false,
       sorting: 'Alpabetical',
-      search: ""
+      results: []
     }
 
     if(weather.length > 1) {
@@ -75,38 +75,14 @@ class List extends React.Component<{}, IWeather> {
 
     this.getLocalWeater = this.getLocalWeater.bind(this);
     this.getDefaultWeather = this.getDefaultWeather.bind(this);
+    this.getWeatherByName = this.getWeatherByName.bind(this);
     this.removeWeather = this.removeWeather.bind(this);
     this.setDataToState = this.setDataToState.bind(this);
     this.onDragEnd = this.onDragEnd.bind(this);
-    this.searchLocation = this.searchLocation.bind(this);
-    this.debouncedSearch = this.debouncedSearch.bind(this);
-    // this.debouncedSearch = lodashDebounce((event: any) => this.searchLocation = (event: any) =>  500);
-    this.debouncedSearch = debounce(this.searchLocation,1000);
-
     this.clearList = this.clearList.bind(this);
+    this.showSearchResults = this.showSearchResults.bind(this);
+    this.getSearchResults = this.getSearchResults.bind(this);
   }
-
-  debouncedSearch = (event: any) => {
-    console.log("debounce");
-  
-    // this.searchLocation = debounce((value: any) => this.searchLocation(value), 500 )
-    // this.searchLocation = debounce(this.searchLocation, 500 )
-    
-  }
-  
-  searchLocation = (event: any) => {
-    // console.log(event.taget.value);
-    
-    console.log(event.currentTarget.value);
-    
-    // let { value } = event.target;
-    // console.log(event.target.value);
-    // // console.log(value);
-    // this.setState({
-    //     search: value
-    // })
-  };
-
 
   onDragEnd(result: any) {
     // dropped outside the list
@@ -154,6 +130,8 @@ class List extends React.Component<{}, IWeather> {
     if(localStorage.getItem("weather") === null || this.state.weather.length === 0) {
       axios.get(`${ApiUrl}q=Stockholm&${metric}&appid=${ApiKey}`)
       .then((response: any) => {
+        console.log(response.data);
+        
         this.setDataToState(response, local)
       })
     }
@@ -173,22 +151,6 @@ class List extends React.Component<{}, IWeather> {
     })
   }
 
-  // getWeatherByName = debounce((city: any) => {
-  //   const local = false;
-  //   const weather = this.state.weather;
-
-  //   for (let index = 0; index < weather.length; index++) {
-  //     if(city === weather[index].name) {
-  //       return null;
-  //     }
-  //   }
-
-  //   axios.get(`${ApiUrl}q=${city}&${metric}&appid=${ApiKey}`)
-  //     .then((response: IWeatherDetails[]) => {
-  //       this.setDataToState(response, local)
-  //     }) 
-  // });
-
   getWeatherByName(city: string) {
     const local = false;
     const weather = this.state.weather;
@@ -206,7 +168,6 @@ class List extends React.Component<{}, IWeather> {
   }
 
   getLocalWeater() {
-    
     navigator.geolocation.getCurrentPosition(
       position => {
         const lat: number = position.coords.latitude;
@@ -223,6 +184,35 @@ class List extends React.Component<{}, IWeather> {
     this.setState({ weather: filteredArray}, () => {
       localStorage.setItem("weather", JSON.stringify(this.state.weather))
     })
+  }
+
+  getSearchResults(value: string) {
+    const results = this.state.results;
+    
+    this.state.results.map(item => {    
+      if(item.name !== value) {
+        this.setState({ results: []})
+      }
+    })
+
+    axios.get(`${ApiUrl}q=${value}&${metric}&appid=${ApiKey}`)
+    .then((response: AxiosResponse<any>) => { 
+      
+      this.setState({
+        results: [... results, 
+          {
+        name: response.data.name,
+        temp: response.data.main.temp.toFixed(),
+        id: response.data.id
+          }
+        ]
+      })
+    })
+  }
+
+  showSearchResults(event: any) {
+    const value = event.target.value;
+    this.getSearchResults(value)
   }
 
 
@@ -255,7 +245,6 @@ class List extends React.Component<{}, IWeather> {
   }
 
   render() {
-    // onChange={_.debounce(this.searchLocation.bind(this), 1000 )}
     return(
       <div className="weather">
         
@@ -266,18 +255,15 @@ class List extends React.Component<{}, IWeather> {
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
               <path d="M3 6v18h18v-18h-18zm5 14c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm5 0c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm5 0c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm4-18v2h-20v-2h5.711c.9 0 1.631-1.099 1.631-2h5.315c0 .901.73 2 1.631 2h5.712z"/>
             </svg>
-          </button>
-
-          <DebounceInput 
-            minLength={2}
-            debounceTimeout={1000}
-            onChange={event => this.setState({search: event.target.value}, () => this.getWeatherByName(event.target.value))}
-            className="weather__search" placeholder="Search for a city" 
-          >
-          </DebounceInput>          
-
+          </button>      
           {/* <input type="text" className="weather__search" placeholder="Search for a city" onChange={this.debouncedSearch} value={this.state.search}/> */}
         </div>
+        <Search 
+            addToList={this.getWeatherByName}
+            results={this.state.results}
+            handleInput={this.showSearchResults}
+            handleEnter={this.showSearchResults}
+          />
         {/* <div className="weather__sort">
           
           <button onClick={this.sortCold}>Cold</button>

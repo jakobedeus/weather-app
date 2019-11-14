@@ -1,0 +1,30 @@
+.search__wrapper {
+
+}
+
+$borderStyle: solid rgb(179, 179, 179);
+
+.results {
+    display: flex;
+    flex-direction: column;
+    border-top: none;
+    // padding: .2em .8em;
+    margin-top: -4px;
+
+    &-item {
+        background: white;
+        padding: 0 1em;
+        border-bottom: 1px solid gray;
+        display: flex;
+        align-self: center;
+        justify-content: space-between;
+        // padding: em;
+
+        button {
+            display: flex;
+            align-self: center;
+            padding: .6em;
+            height: 30px;
+        }
+    }
+}

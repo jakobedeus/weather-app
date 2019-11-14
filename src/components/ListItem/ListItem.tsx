@@ -1,22 +1,11 @@
 import React from 'react';
 import './_ListItem.scss';
 import { Draggable } from "react-beautiful-dnd";
+import { IWeatherDetails } from '../List/List';
 
 export interface IListItemProps {
   removeWeatherProps(id: number): void;
-  weather: IListItemDetails[];
-
-}
-
-export interface IListItemDetails {
-  name: string;
-  id: any;
-  temp: number;
-  humidity: number;
-  latitude: number;
-  longitude: number;
-  local: boolean;
-  icon: string;
+  weather: IWeatherDetails[];
 }
 
 const getItemStyle = (isDragging: any, draggableStyle: any) => ({
@@ -33,7 +22,7 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
 function ListItem (props: IListItemProps) {
   return (
     <div className="list-container">
-    <p>{props.weather.length} results found.</p>
+    {/* <p>{props.weather.length} results found.</p> */}
     {props.weather.map((item, index) => (
         <Draggable
           key={item.id} draggableId={JSON.stringify(item.id)} index={index}>
@@ -50,13 +39,17 @@ function ListItem (props: IListItemProps) {
               )}
             >
               <div className="list-item-info">
+                <div className="user">{ item.local ? 
+                  <img src={require('../../imgs/user.png')} width="20px" height="20px"/> : '' }
+                </div>
                   <p><b>{item.name} </b></p> 
                   
                   <img src={('http://openweathermap.org/img/wn/' + `${item.icon}` + '@2x.png')} alt="Icon of weather"/>
                   <p className="temp">
                     {item.temp} °C
                   </p> 
-                  <p>{ item.local ? ' - Local': '' }</p>
+                  {/* <p>{ item.local ? ' - Local': '' }</p> */}
+
               </div>
       
               <button onClick={() => props.removeWeatherProps(item.id)} className="remove">
