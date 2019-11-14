@@ -38,11 +38,14 @@
                 height: 60px;
             }
 
-        
+            .country-flag{
+                align-self: center;
+                height: 30px;
+                width: 30px;
+                margin-right: 10px;
+            }
         }
     }
-    
-    
 }
 
 .user {
@@ -105,4 +108,18 @@ button {
         flex: 1;
         margin: 5px;
     }
+}
+
+
+
+.blue {
+    border: 3px solid blue;
+}
+
+.red {
+    border: 3px solid red;
+}
+
+.yellow {
+    border: 3px solid yellow;
 }

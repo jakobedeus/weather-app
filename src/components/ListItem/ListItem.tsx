@@ -22,7 +22,8 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
 function ListItem (props: IListItemProps) {
   return (
     <div className="list-container">
-    {/* <p>{props.weather.length} results found.</p> */}
+      
+
     {props.weather.map((item, index) => (
         <Draggable
           key={item.id} draggableId={JSON.stringify(item.id)} index={index}>
@@ -38,18 +39,17 @@ function ListItem (props: IListItemProps) {
                 provided.draggableProps.style
               )}
             >
-              <div className="list-item-info">
+              <div className={'list-item-info'}>
                 <div className="user">{ item.local ? 
                   <img src={require('../../imgs/user.png')} width="20px" height="20px"/> : '' }
                 </div>
+                  <img className="country-flag" src={('https://www.countryflags.io/' + `${item.country}` + '/flat/24.png')} alt="Icon of country"/>
                   <p><b>{item.name} </b></p> 
                   
                   <img src={('http://openweathermap.org/img/wn/' + `${item.icon}` + '@2x.png')} alt="Icon of weather"/>
                   <p className="temp">
                     {item.temp} °C
-                  </p> 
-                  {/* <p>{ item.local ? ' - Local': '' }</p> */}
-
+                  </p>
               </div>
       
               <button onClick={() => props.removeWeatherProps(item.id)} className="remove">

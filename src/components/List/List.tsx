@@ -23,6 +23,7 @@ export interface IWeatherDetails {
   longitude: number;
   local: boolean;
   icon: string;
+  country: string;
 }
 
 export interface SearchDetails {
@@ -119,7 +120,8 @@ class List extends React.Component<{}, IWeather> {
       longitude: response.data.coord.lon,
       latitude: response.data.coord.lat,
       local: local,
-      icon: icon
+      icon: icon,
+      country: response.data.sys.country
     }]}, () => {
       localStorage.setItem("weather", JSON.stringify(this.state.weather))
     })
@@ -163,6 +165,8 @@ class List extends React.Component<{}, IWeather> {
 
     axios.get(`${ApiUrl}q=${city}&${metric}&appid=${ApiKey}`)
       .then((response: AxiosResponse<IWeatherDetails[]>) => {
+        console.log(response.data);
+        
         this.setDataToState(response, local)
       }) 
   }
@@ -256,7 +260,6 @@ class List extends React.Component<{}, IWeather> {
               <path d="M3 6v18h18v-18h-18zm5 14c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm5 0c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm5 0c0 .552-.448 1-1 1s-1-.448-1-1v-10c0-.552.448-1 1-1s1 .448 1 1v10zm4-18v2h-20v-2h5.711c.9 0 1.631-1.099 1.631-2h5.315c0 .901.73 2 1.631 2h5.712z"/>
             </svg>
           </button>      
-          {/* <input type="text" className="weather__search" placeholder="Search for a city" onChange={this.debouncedSearch} value={this.state.search}/> */}
         </div>
         <Search 
             addToList={this.getWeatherByName}
